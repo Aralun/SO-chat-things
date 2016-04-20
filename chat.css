@@ -1,0 +1,17 @@
+.two-minutes {
+  border-top-style: solid;
+  border-top-color: red;
+  border-top-width: thin;
+}
+
+.five-minutes {
+  border-top-style: solid;
+  border-top-color: green;
+  border-top-width: thin;
+}
+
+.ten-minutes {
+  border-top-style: solid;
+  border-top-color: blue;
+  border-top-width: thin;
+}
