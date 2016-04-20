@@ -4,46 +4,33 @@
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @version     1
-// @grant       none
+// @resource    TimeLineStyle https://github.com/Aralun/SO-chat-things/raw/master/chat.css
+// @grant       GM_addStyle
+// @grant       GM_getResourceText
 // @eat         waffle
 // ==/UserScript==
 
-window.Plop = window.Plop || {}
-Plopify = (...args) => Object.assign(Plop, ...args)
+window.eval('window.Plop = window.Plop || {}')
+Plopify = (...args) => Object.assign(window.eval('window.Plop'), ...args)
 
-CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
+
+const timestampAdder = ({event_type, time_stamp, message_id}) => {
   if(event_type === 1) {
     // We need the HTML element to exist, it's set synchronously
     // Thus, queue the query
     setTimeout(() => {
-      // Add timestamp to the message itself
-      document.getElementById(`message-${message_id}`)
-        .setAttribute('timestamp', time_stamp)
+
+      const element = document.getElementById(`message-${message_id}`)
+      if (element) {
+        element.setAttribute('timestamp', time_stamp)
+      }
     }, 0);
   }
-})
-
-GM.addStyle(
-`
-.two-minutes {
-  border-top-style: solid;
-  border-top-color: red;
-  border-top-width: thin;
 }
 
-.five-minutes {
-  border-top-style: solid;
-  border-top-color: green;
-  border-top-width: thin;
-}
+window.eval('window.CHAT.addEventHandlerHook(' + timestampAdder.toString() + ')')
 
-.ten-minutes {
-  border-top-style: solid;
-  border-top-color: blue;
-  border-top-width: thin;
-}
-`
-)
+GM_addStyle(GM_getResourceText('TimeLineStyle'))
 
 // Add some magic
 HTMLCollection.prototype[Symbol.iterator] =
