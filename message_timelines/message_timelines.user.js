@@ -4,7 +4,7 @@
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @version     1
-// @resource    TimeLineStyle https://github.com/Aralun/SO-chat-things/raw/master/chat.css
+// @resource    TimeLineStyle https://raw.githubusercontent.com/Aralun/SO-chat-things/master/message_timelines/message_timelines.css
 // @grant       GM_addStyle
 // @grant       GM_getResourceText
 // @eat         waffle
