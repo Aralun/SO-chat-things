@@ -1,16 +1,16 @@
-.two-minutes {
+.message.two-minutes {
   border-top-style: solid!important;
   border-top-color: red!important;
   border-top-width: thin!important;
 }
 
-.five-minutes {
+.message.five-minutes {
   border-top-style: solid!important;
   border-top-color: green!important;
   border-top-width: thin!important;
 }
 
-.ten-minutes {
+.message.ten-minutes {
   border-top-style: solid!important;
   border-top-color: blue!important;
   border-top-width: thin!important;
