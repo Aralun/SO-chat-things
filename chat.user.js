@@ -1,6 +1,6 @@
 // ==UserScript==
-// @name        Kyll's things
-// @namespace   Kyll
+// @name        SO Time Lines
+// @namespace   Kyll-things
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @version     1
