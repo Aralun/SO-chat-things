@@ -1,17 +1,17 @@
 .message.two-minutes {
-  border-top-style: solid!important;
-  border-top-color: red!important;
-  border-top-width: thin!important;
+  border-bottom-style: solid!important;
+  border-bottom-color: red!important;
+  border-bottom-width: thin!important;
 }
 
 .message.five-minutes {
-  border-top-style: solid!important;
-  border-top-color: green!important;
-  border-top-width: thin!important;
+  border-bottom-style: solid!important;
+  border-bottom-color: green!important;
+  border-bottom-width: thin!important;
 }
 
 .message.ten-minutes {
-  border-top-style: solid!important;
-  border-top-color: blue!important;
-  border-top-width: thin!important;
+  border-bottom-style: solid!important;
+  border-bottom-color: blue!important;
+  border-bottom-width: thin!important;
 }
