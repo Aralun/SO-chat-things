@@ -5,6 +5,10 @@
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @exclude     *://chat.stackoverflow.com/rooms/info/*
+// @include     *://chat.meta.stackexchange.com/rooms/*
+// @exclude     *://chat.meta.stackexchange.com/rooms/info/*
+// @include     *://chat.stackexchange.com/rooms/*
+// @exlude      *://chat.stackexchange.com/rooms/info/*
 // @version     1
 // @eat         waffle
 // ==/UserScript==
