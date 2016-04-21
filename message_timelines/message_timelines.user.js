@@ -4,37 +4,56 @@
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @version     1
-// @resource    TimeLineStyle https://raw.githubusercontent.com/Aralun/SO-chat-things/master/message_timelines/message_timelines.css
-// @grant       GM_addStyle
-// @grant       GM_getResourceText
+// @run-at      document-idle
 // @eat         waffle
 // ==/UserScript==
 
-window.eval('window.Plop = window.Plop || {}')
-Plopify = (...args) => Object.assign(window.eval('window.Plop'), ...args)
+// Add some Plop
+window.Plop = window.Plop || {}
+Plopify = (...args) => Object.assign(window.Plop, ...args)
+
+// Add some magic
+HTMLCollection.prototype[Symbol.iterator] =
+  HTMLCollection.prototype[Symbol.iterator] || Array.prototype[Symbol.iterator]
+
+// Add some style
+const headNode = document.getElementsByTagName('head')[0]
+    , styleNode = document.createElement('style')
+
+headNode.appendChild(styleNode)
+//TODO: Do this programmatically, kind of ugly atm
+styleNode.innerHTML = '.message.two-minutes {  border-bottom-style: solid!important;  border-bottom-color: red!important;  border-bottom-width: thin!important;}.message.five-minutes {  border-bottom-style: solid!important;  border-bottom-color: green!important;  border-bottom-width: thin!important;}.message.ten-minutes {  border-bottom-style: solid!important;  border-bottom-color: blue!important;  border-bottom-width: thin!important;}'
+
+// Add timestamps on all existing messages
+// This requires the DOM to be loaded.
+// Try until it worked
+// If anyone has some kind of cleaner way to do this (event?), I'm taker
+const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
+  const allMessages = document.querySelectorAll('*[id^="message-"]')
+
+  for(let message of allMessages) {
+    message.setAttribute('timestamp', $.data(message, 'info').time)
+  }
+
+  if(allMessages.length > 0) {
+    clearInterval(allTimestampsInterval)
+  }
+}, 2000)
 
 
-const timestampAdder = ({event_type, time_stamp, message_id}) => {
+window.CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
+  // New message
   if(event_type === 1) {
     // We need the HTML element to exist, it's set synchronously
     // Thus, queue the query
     setTimeout(() => {
-
       const element = document.getElementById(`message-${message_id}`)
       if (element) {
         element.setAttribute('timestamp', time_stamp)
       }
     }, 0);
   }
-}
-
-window.eval('window.CHAT.addEventHandlerHook(' + timestampAdder.toString() + ')')
-
-GM_addStyle(GM_getResourceText('TimeLineStyle'))
-
-// Add some magic
-HTMLCollection.prototype[Symbol.iterator] =
-  HTMLCollection.prototype[Symbol.iterator] || Array.prototype[Symbol.iterator]
+})
 
 const twoMinutesClass = 'two-minutes'
     , fiveMinutesClass = 'five-minutes'
