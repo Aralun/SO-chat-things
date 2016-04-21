@@ -1,8 +1,10 @@
 // ==UserScript==
 // @name        SO Time Lines
 // @namespace   Kyll-things
+// @author      Kyll
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
+// @exclude     *://chat.stackoverflow.com/rooms/info/*
 // @version     1
 // @eat         waffle
 // ==/UserScript==
