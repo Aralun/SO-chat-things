@@ -32,7 +32,8 @@ const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
   const allMessages = document.querySelectorAll('*[id^="message-"]')
 
   for(let message of allMessages) {
-    message.setAttribute('timestamp', $.data(message, 'info').time)
+    let timestamp = $.data(message, 'info') && $.data(message, 'info').time
+    message.setAttribute('timestamp', timestamp)
   }
 
   if(allMessages.length > 0) {
