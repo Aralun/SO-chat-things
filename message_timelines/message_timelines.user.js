@@ -4,7 +4,6 @@
 // @description Random chat improvements
 // @include     *://chat.stackoverflow.com/rooms/*
 // @version     1
-// @run-at      document-idle
 // @eat         waffle
 // ==/UserScript==
 
@@ -41,20 +40,27 @@ const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
   }
 }, 2000)
 
-
-window.CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
-  // New message
-  if(event_type === 1) {
-    // We need the HTML element to exist, it's set synchronously
-    // Thus, queue the query
-    setTimeout(() => {
-      const element = document.getElementById(`message-${message_id}`)
-      if (element) {
-        element.setAttribute('timestamp', time_stamp)
+// Tampermonkey wouldn't load the script after the main one
+// Wait for CHAT to appear...
+const hookSetterInterval = setInterval(function setHook() {
+  if(typeof CHAT !== 'undefined') {
+    window.CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
+      // New message
+      if(event_type === 1) {
+        // We need the HTML element to exist, it's set synchronously
+        // Thus, queue the query
+        setTimeout(() => {
+          const element = document.getElementById(`message-${message_id}`)
+          if (element) {
+            element.setAttribute('timestamp', time_stamp)
+          }
+        }, 0);
       }
-    }, 0);
+    })
+    clearInterval(hookSetterInterval)
   }
-})
+}, 500)
+
 
 const twoMinutesClass = 'two-minutes'
     , fiveMinutesClass = 'five-minutes'
