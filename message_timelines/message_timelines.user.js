@@ -14,6 +14,8 @@ Plopify = (...args) => Object.assign(window.Plop, ...args)
 // Add some magic
 HTMLCollection.prototype[Symbol.iterator] =
   HTMLCollection.prototype[Symbol.iterator] || Array.prototype[Symbol.iterator]
+NodeList.prototype[Symbol.iterator] =
+  NodeList.prototype[Symbol.iterator] || Array.prototype[Symbol.iterator]
 
 // Add some style
 const headNode = document.getElementsByTagName('head')[0]
@@ -40,27 +42,19 @@ const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
   }
 }, 2000)
 
-// Tampermonkey wouldn't load the script after the main one
-// Wait for CHAT to appear...
-const hookSetterInterval = setInterval(function setHook() {
-  if(typeof CHAT !== 'undefined') {
-    window.CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
-      // New message
-      if(event_type === 1) {
-        // We need the HTML element to exist, it's set synchronously
-        // Thus, queue the query
-        setTimeout(() => {
-          const element = document.getElementById(`message-${message_id}`)
-          if (element) {
-            element.setAttribute('timestamp', time_stamp)
-          }
-        }, 0);
+CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
+  // New message
+  if(event_type === 1) {
+    // We need the HTML element to exist, it's set synchronously
+    // Thus, queue the query
+    setTimeout(() => {
+      const element = document.getElementById(`message-${message_id}`)
+      if (element) {
+        element.setAttribute('timestamp', time_stamp)
       }
-    })
-    clearInterval(hookSetterInterval)
+    }, 0);
   }
-}, 500)
-
+})
 
 const twoMinutesClass = 'two-minutes'
     , fiveMinutesClass = 'five-minutes'
