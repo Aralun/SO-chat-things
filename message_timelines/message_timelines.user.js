@@ -25,11 +25,9 @@ NodeList.prototype[Symbol.iterator] =
 
 // Add some style
 const headNode = document.getElementsByTagName('head')[0]
-    , styleNode = document.createElement('style')
+    , linesStyleNode = document.createElement('style')
 
-headNode.appendChild(styleNode)
-//TODO: Do this programmatically, kind of ugly atm
-styleNode.innerHTML = '.message.two-minutes {  border-bottom-style: solid!important;  border-bottom-color: red!important;  border-bottom-width: thin!important;}.message.five-minutes {  border-bottom-style: solid!important;  border-bottom-color: green!important;  border-bottom-width: thin!important;}.message.ten-minutes {  border-bottom-style: solid!important;  border-bottom-color: blue!important;  border-bottom-width: thin!important;}'
+headNode.appendChild(linesStyleNode)
 
 // Add timestamps on all existing messages
 // This requires the DOM to be loaded.
@@ -58,96 +56,126 @@ CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
       if (element) {
         element.setAttribute('timestamp', time_stamp)
       }
-    }, 0);
+    }, 0)
   }
 })
 
-const twoMinutesClass = 'two-minutes'
-    , fiveMinutesClass = 'five-minutes'
-    , tenMinutesClass = 'ten-minutes'
+const makeLine = (colour, durationSeconds, className) =>
+  ({ colour, durationSeconds, className })
 
-    , testFiveSecondsClass = 'five-seconds'
+// Sequence ordered by duration in ascending order
+// Example:
+// [
+//   { colour: 'red', duration: 120, className: 'two-minutes'}
+// ]
+const lines = []
+lines.maxLookupAmount = 42
+lines.addLine = (colour, durationSeconds, className, doUpdate = true) => {
+  const newLine = makeLine(colour, durationSeconds, className)
+      , indexToInsert = lines.findIndex(e => e.durationSeconds > durationSeconds)
 
-Plopify({twoMinutesClass, fiveMinutesClass, tenMinutesClass, testFiveSecondsClass})
+  if(indexToInsert === -1) {
+    lines.push(newLine)
+  }
+  else {
+    lines.splice(
+      indexToInsert,
+      0,
+      newLine
+    )
+  }
+  if(doUpdate) {
+    lines.updateCSS()
+  }
+}
+
+lines.addMultipleLines = (...linesSequence) => {
+  linesSequence.forEach(line => lines.addLine(
+    line.colour, line.durationSeconds, line.className, false
+  ))
+  lines.updateCSS()
+}
+
+lines.CSSNode = linesStyleNode
+lines.generateCSS = () => lines.reduce((summedCSS, line) =>
+  `${summedCSS}
+  .message.${line.className} {
+    border-bottom-style: solid!important;
+    border-bottom-color: ${line.colour}!important;
+      border-bottom-width: thin!important;
+  }`, '')
+lines.updateCSS = () => {
+  lines.CSSNode.innerHTML = lines.generateCSS()
+}
+
+// Default lines
+if(lines.length === 0) {
+  lines.addMultipleLines({
+    colour: 'red',
+    durationSeconds: 120,
+    className: 'two-minutes'
+  },
+  {
+    colour: 'green',
+    durationSeconds: 300,
+    className: 'five-minutes'
+  },
+  {
+    colour: 'blue',
+    durationSeconds: 600,
+    className: 'ten-minutes'
+  })
+}
+
+Plopify({ lines })
 
 setInterval(function manageTimeLines() {
-  const removeTimeLines = () => {
-    [
-      ...document.getElementsByClassName(twoMinutesClass)
-      ,  ...document.getElementsByClassName(fiveMinutesClass)
-      ,  ...document.getElementsByClassName(tenMinutesClass)
-
-      ,  ...document.getElementsByClassName(testFiveSecondsClass)
-    ].forEach(e => {
-      e.classList.remove(twoMinutesClass)
-      e.classList.remove(fiveMinutesClass)
-      e.classList.remove(tenMinutesClass)
-
-      e.classList.remove(testFiveSecondsClass)
-    })
+  const removeAllLines = () => {
+    // TODO: Implement Timeouts instead of raw removals
+    const allClasses = lines.map(line => line.className)
+    // Ninja it to array because element collections suck
+    allClasses
+      .map(className => document.getElementsByClassName(className))
+      .forEach(elementsCollection =>
+        [...elementsCollection].forEach(element =>
+          element.classList.remove(...allClasses)
+        )
+      )
   }
 
-  const addTimeLines = () => {
-    const twoMinutesToMs = 1000 * 60 * 2
-        , fiveMinutesToMs = 1000 * 60 * 5
-        , tenMinutesToMs = 1000 * 60 * 10
-
-        , testFiveSecondsToMs = 1000 * 5
-
-    Plopify({twoMinutesToMs, fiveMinutesToMs, tenMinutesToMs, testFiveSecondsToMs})
-
+  const addLines = () => {
     const allMessages = document.querySelectorAll('.message')
-        , maxLookupAmount = Math.min(42, allMessages.length)
+        , maxLookupAmount = Math.min(lines.maxLookupAmount, allMessages.length)
         , now = Date.now()
 
-    Plopify({maxLookupAmount})
+        , thresholds = [...lines]
 
-    let markedTwoMinutes = false
-      , markedFiveMinutes = false
-      , markedTenMinutes = false
+    for(let i = allMessages.length - 1; i > allMessages.length - maxLookupAmount; i--) {
+      const currentLine = thresholds[0]
+          , currentMessage = allMessages[i]
+          , messageTimestamp = Number.parseInt(
+            currentMessage.getAttribute('timestamp')
+          ) * 1000
 
-      , testMarkedFiveSeconds = false
-
-    for(i = allMessages.length - 1; i > allMessages.length - maxLookupAmount; i--) {
-      let currentMessage = allMessages[i]
-        // Fetch the timestamp on the HTML element, multiply by 1000 to get
-        // millisecond precision
-        , messageTimestamp = Number.parseInt(
-          currentMessage.getAttribute('timestamp')
-        ) * 1000
-
-      if (
-        messageTimestamp < (now - testFiveSecondsToMs)
-        && !testMarkedFiveSeconds
-      ) {
-        currentMessage.classList.add(testFiveSecondsClass)
-        testMarkedFiveSeconds = true
+      if(!currentLine) {
+        // No more lines to add, quit
+        break
       }
-      if (
-        messageTimestamp < (now - twoMinutesToMs)
-        && !markedTwoMinutes
+
+      if(
+        messageTimestamp < (now - (currentLine.durationSeconds * 1000))
       ) {
-        currentMessage.classList.add(twoMinutesClass)
-        markedTwoMinutes = true
-      }
-      if (
-        messageTimestamp < (now - fiveMinutesToMs)
-        && !markedFiveMinutes
-      ) {
-        currentMessage.classList.add(fiveMinutesClass)
-        markedFiveMinutes = true
-      }
-      if (
-        messageTimestamp < (now - tenMinutesToMs)
-        && !markedTenMinutes
-      ) {
-        currentMessage.classList.add(tenMinutesClass)
-        markedTenMinutes = true
+        currentMessage.classList.add(currentLine.className)
+
+        // We're done with this line, remove it
+        thresholds.shift()
+        // A message can have multiple lines attached, so redo this round
+        i++
       }
     }
   }
 
-  removeTimeLines()
+  removeAllLines()
 
-  addTimeLines()
-}, 4200)
+  addLines()
+}, 420)
