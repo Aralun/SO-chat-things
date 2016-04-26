@@ -24,10 +24,8 @@ NodeList.prototype[Symbol.iterator] =
   NodeList.prototype[Symbol.iterator] || Array.prototype[Symbol.iterator]
 
 // Add some style
-const headNode = document.getElementsByTagName('head')[0]
-    , linesStyleNode = document.createElement('style')
-
-headNode.appendChild(linesStyleNode)
+const linesStyleNode = document.createElement('style')
+document.head.appendChild(linesStyleNode)
 
 // Add timestamps on all existing messages
 // This requires the DOM to be loaded.
