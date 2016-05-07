@@ -175,6 +175,9 @@ Example:
     Plop.lines[0].colour = 'purple'
     Plop.lines[3].durationSeconds = 1200 // 20 minutes
 
+To update deh CSS and make the changes appear:
+    Plop.lines.updateCSS()
+
 To add a new line, use the Plop.lines.addLine function.
 First argument is the colour of the line.
 Second argument is the duration in seconds it represents.
