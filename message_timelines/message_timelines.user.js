@@ -9,13 +9,15 @@
 // @exclude     *://chat.meta.stackexchange.com/rooms/info/*
 // @include     *://chat.stackexchange.com/rooms/*
 // @exlude      *://chat.stackexchange.com/rooms/info/*
-// @version     1.1
+// @version     1.2
 // @eat         waffle
 // ==/UserScript==
 
 // Add some Plop
 window.Plop = window.Plop || {}
 Plopify = (...args) => Object.assign(window.Plop, ...args)
+
+const storeKey = 'plop-lines'
 
 // Add some magic
 HTMLCollection.prototype[Symbol.iterator] =
@@ -67,47 +69,144 @@ const makeLine = (colour, durationSeconds, className) =>
 //   { colour: 'red', duration: 120, className: 'two-minutes'}
 // ]
 const lines = []
-lines.maxLookupAmount = 42
-lines.addLine = (colour, durationSeconds, className, doUpdate = true) => {
-  const newLine = makeLine(colour, durationSeconds, className)
-      , indexToInsert = lines.findIndex(e => e.durationSeconds > durationSeconds)
 
-  if(indexToInsert === -1) {
-    lines.push(newLine)
+const defaultLines = [
+  {
+    colour: 'red',
+    durationSeconds: 120,
+    className: 'two-minutes'
+  },
+  {
+    colour: 'green',
+    durationSeconds: 300,
+    className: 'five-minutes'
+  },
+  {
+    colour: 'blue',
+    durationSeconds: 600,
+    className: 'ten-minutes'
   }
-  else {
-    lines.splice(
-      indexToInsert,
-      0,
-      newLine
-    )
+]
+
+Object.defineProperties(lines, {
+  addLine : {
+    value: (colour, durationSeconds, className, doUpdate = true) => {
+      const newLine = makeLine(colour, durationSeconds, className)
+          , indexToInsert = lines.findIndex(e => e.durationSeconds > durationSeconds)
+
+      if(indexToInsert === -1) {
+        lines.push(newLine)
+      }
+      else {
+        lines.splice(
+          indexToInsert,
+          0,
+          newLine
+        )
+      }
+      if(doUpdate) {
+        lines.updateCSS()
+      }
+    }
+  },
+  addMultipleLines: {
+    value: (...linesSequence) => {
+      linesSequence.forEach(line => lines.addLine(
+        line.colour, line.durationSeconds, line.className, false
+      ))
+      lines.updateCSS()
+    }
+  },
+  removeLine: {
+    value: (index, doUpdate = true) => {
+      lines.splice(index, 1)
+      if(doUpdate) {
+        lines.updateCSS()
+      }
+    }
+  },
+  removeMultipleLines: {
+    value: (...indexes) => {
+      indexes.forEach(index => lines.removeLine(index), false)
+      lines.updateCSS()
+    }
+  },
+  maxLookupAmount: {
+    value: 42
+  },
+  CSSNode: {
+    value: linesStyleNode
+  },
+  generateCSS: {
+    value: () => lines.reduce((summedCSS, line) =>
+      `${summedCSS}
+      .message.${line.className} {
+        border-bottom-style: solid!important;
+        border-bottom-color: ${line.colour}!important;
+          border-bottom-width: thin!important;
+      }`, '')
+  },
+  updateCSS: {
+    value: () => lines.CSSNode.innerHTML = lines.generateCSS()
+  },
+  save: {
+    value: () => localStorage.setItem('plop-lines', JSON.stringify([...lines]))
+  },
+  reset: {
+    value: () => {
+      localStorage.removeItem(storeKey)
+      lines.removeMultipleLines(
+        ...lines.keys()
+      )
+      lines.addMultipleLines(...defaultLines)
+    }
   }
-  if(doUpdate) {
-    lines.updateCSS()
-  }
-}
+})
 
-lines.addMultipleLines = (...linesSequence) => {
-  linesSequence.forEach(line => lines.addLine(
-    line.colour, line.durationSeconds, line.className, false
-  ))
-  lines.updateCSS()
-}
+// TODO: That's overstepping the responsibility of this script.
+// Need to hoist the "help" thingies in its own script and require it
+Plop.help = () => console.log('Maybe you meant `Plop.halp()`?')
+Plop.halp = () => console.log(
+`Plop!
+You can view the lines properties by typing Plop.lines in this console.
+You can change any property of said lines with your debug tools or a command.
+The colours must be CSS colours, such as "purple" or "0xFAFAFA"
+Example:
+    Plop.lines[0].colour = 'purple'
+    Plop.lines[3].durationSeconds = 1200 // 20 minutes
 
-lines.CSSNode = linesStyleNode
-lines.generateCSS = () => lines.reduce((summedCSS, line) =>
-  `${summedCSS}
-  .message.${line.className} {
-    border-bottom-style: solid!important;
-    border-bottom-color: ${line.colour}!important;
-      border-bottom-width: thin!important;
-  }`, '')
-lines.updateCSS = () => {
-  lines.CSSNode.innerHTML = lines.generateCSS()
-}
+To add a new line, use the Plop.lines.addLine function.
+First argument is the colour of the line.
+Second argument is the duration in seconds it represents.
+Third argument is the CSS class name it should use.
+Example:
+    Plop.lines.addLine('yellow', 180 /* three minutes */, 'three-minutes')
 
-// Default lines
-if(lines.length === 0) {
+To remove a line, use the Plop.lines.removeLine function.
+Only argument is the index (can be negative as reverse index).
+Example:
+    Plop.lines.removeLine(0)  // Remove first line
+    Plop.lines.removeLine(-1) // Remove last line
+
+Once you've done your changes, save them so that they persist across reloads:
+    Plop.lines.save()
+
+If you screwed up:
+    Plop.reset()
+
+Have fun!
+ - Kyll
+`
+)
+
+
+const storedLines = JSON.parse(localStorage.getItem(storeKey))
+
+if(storedLines) {
+  lines.addMultipleLines(...storedLines)
+}
+else {
+  // Default lines
   lines.addMultipleLines({
     colour: 'red',
     durationSeconds: 120,
