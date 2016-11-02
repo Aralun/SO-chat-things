@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name        SO Time Lines
+// @name        SE chat timelines indicators
 // @namespace   Kyll-things
 // @author      Kyll
-// @description Random chat improvements
+// @description Adds coloured lines between messages to indicate age
 // @include     *://chat.stackoverflow.com/rooms/*
 // @exclude     *://chat.stackoverflow.com/rooms/info/*
 // @include     *://chat.meta.stackexchange.com/rooms/*
@@ -31,7 +31,7 @@ document.head.appendChild(linesStyleNode)
 
 // Add timestamps on all existing messages
 // This requires the DOM to be loaded.
-// Try until it worked
+// Try until it found some messages on which to add timestamps
 // If anyone has some kind of cleaner way to do this (event?), I'm taker
 const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
   const allMessages = document.querySelectorAll('*[id^="message-"]')
@@ -47,8 +47,12 @@ const allTimestampsInterval = setInterval(function tryAddAllTimestamps() {
 }, 2000)
 
 CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
-  // New message
-  if(event_type === 1) {
+  const caughtEvents = [
+    1, // new message
+    2, // edit
+    10 // deleted message
+  ]
+  if(caughtEvents.includes(event_type)) {
     // We need the HTML element to exist, it's set synchronously
     // Thus, queue the query
     setTimeout(() => {
@@ -60,13 +64,14 @@ CHAT.addEventHandlerHook(({event_type, time_stamp, message_id}) => {
   }
 })
 
+// Sophisticated.
 const makeLine = (colour, durationSeconds, className) =>
   ({ colour, durationSeconds, className })
 
 // Sequence ordered by duration in ascending order
 // Example:
 // [
-//   { colour: 'red', duration: 120, className: 'two-minutes'}
+//   { colour: 'red', durationSeconds: 120, className: 'two-minutes'}
 // ]
 const lines = []
 
