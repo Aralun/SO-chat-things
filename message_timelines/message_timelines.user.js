@@ -8,7 +8,7 @@
 // @include     *://chat.meta.stackexchange.com/rooms/*
 // @exclude     *://chat.meta.stackexchange.com/rooms/info/*
 // @include     *://chat.stackexchange.com/rooms/*
-// @exlude      *://chat.stackexchange.com/rooms/info/*
+// @exclude      *://chat.stackexchange.com/rooms/info/*
 // @version     1.2
 // @eat         waffle
 // ==/UserScript==
