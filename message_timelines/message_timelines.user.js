@@ -148,7 +148,8 @@ Object.defineProperties(lines, {
       .message.${line.className} {
         border-bottom-style: solid!important;
         border-bottom-color: ${line.colour}!important;
-          border-bottom-width: thin!important;
+        border-bottom-width: thin!important;
+        padding-bottom: 1px!important;
       }`, '')
   },
   updateCSS: {
